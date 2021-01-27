@@ -54,8 +54,6 @@ function getSaviours(uid){
     });
 }
 
-getSaviours('test-user-1');
-
 function getLastLocation(uid){
     user_ref.once('value').then(async snapshot => {
         var value = snapshot.val();
@@ -73,22 +71,21 @@ function getLastLocation(uid){
     });
 }
 
-getLastLocation('test-user-1');
-
 function sendAlert(uid, name){
     var saviours = getSaviours(uid);
     var lastLocation = getLastLocation(uid);
     for (var key in saviours){
         sendSms('Hi there! Last location of '+ name + ' is ' + lastLocation, saviours[key]['s_mobile']);
+        call(saviours[key]['s_mobile']);
     }
 }
-async function call(){
+
+async function call(to){
     await client.calls
       .create({
          url: 'http://demo.twilio.com/docs/voice.xml',
-         to: '+919580683998',
+         to: to,
          from: '+12062028257'
        })
       .then(call => console.log(call.sid));
 }
-call();
