@@ -82,4 +82,13 @@ function sendAlert(uid, name){
         sendSms('Hi there! Last location of '+ name + ' is ' + lastLocation, saviours[key]['s_mobile']);
     }
 }
-
+async function call(){
+    await client.calls
+      .create({
+         url: 'http://demo.twilio.com/docs/voice.xml',
+         to: '+919580683998',
+         from: '+12062028257'
+       })
+      .then(call => console.log(call.sid));
+}
+call();
