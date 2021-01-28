@@ -18,6 +18,13 @@ server.post('/alert', function (req, res) {
     console.log(uid, name);
     res.send('POST request');
 })
+
+server.post('/safety-check', function (req, res) {
+    var uid = req.body.uid;
+    var name = req.body.name;
+    console.log(uid, name);
+    res.send('POST request');
+})
   
 const port = 3000
 server.listen(port, () => {
@@ -40,11 +47,11 @@ var db = app.database();
 var user_ref = db.ref("/users");
 
 function getSaviours(uid){
-    user_ref.once('value').then(async snapshot => {
+    user_ref.once('value').then(snapshot => {
         var value = snapshot.val();
         for (var key in value){
             if (value[key]['uid'] == uid){
-                await user_ref.child(key + '/saviours').once('value').then(snapshot_saviour => {
+                user_ref.child(key + '/saviours').once('value').then(snapshot_saviour => {
                     var saviours = snapshot_saviour.val();
                     console.log(saviours);
                     return saviours;
@@ -54,12 +61,51 @@ function getSaviours(uid){
     });
 }
 
-function getLastLocation(uid){
-    user_ref.once('value').then(async snapshot => {
+function notify(token, data, title, body){
+    var message = {
+        notification: {
+            title: title,
+            body: body
+        },
+        data: data,
+        token: token
+      };
+    admin.messaging().send(message)
+    .then((response) => {
+        // Response is a message ID string.
+        console.log('Successfully sent message:', response);
+    })
+    .catch((error) => {
+        console.log('Error sending message:', error);
+    });
+}
+
+/* {
+  type: 'safety-check' or 'protectee-danger',
+  name:  
+}*/
+
+getFCMToken = (uid) => {
+    user_ref.once('value').then(snapshot => {
         var value = snapshot.val();
         for (var key in value){
             if (value[key]['uid'] == uid){
-                await user_ref.child(key + '/logs').once('value').then((snapshot_location) => {
+                user_ref.child(key + '/fcmtoken').once('value').then(snapshot_saviour => {
+                    var token = snapshot_saviour.val();
+                    console.log(token);
+                    return token;
+                });
+            }
+        }
+    });
+}
+
+function getLastLocation(uid){
+    user_ref.once('value').then(snapshot => {
+        var value = snapshot.val();
+        for (var key in value){
+            if (value[key]['uid'] == uid){
+                user_ref.child(key + '/logs').once('value').then((snapshot_location) => {
                     var latestLocation = snapshot_location.val();
                     for (var l_key in latestLocation){
                         console.log(latestLocation[l_key]);
